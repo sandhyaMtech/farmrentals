@@ -2,9 +2,27 @@ import { QueryClient, QueryFunction } from "@tanstack/react-query";
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
-    const text = (await res.text()) || res.statusText;
-    console.error(`API Error: ${res.status} ${res.statusText}`, { url: res.url, text });
-    throw new Error(`${res.status}: ${text}`);
+    let errorMessage = res.statusText;
+    try {
+      // Try to parse response as JSON first
+      const contentType = res.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
+        const errorData = await res.json();
+        errorMessage = errorData.message || errorData.error || JSON.stringify(errorData);
+      } else {
+        // Fallback to text if not JSON
+        errorMessage = await res.text() || res.statusText;
+      }
+    } catch (err) {
+      console.error("Failed to parse error response", err);
+    }
+    
+    console.error(`API Error: ${res.status} ${res.statusText}`, { 
+      url: res.url, 
+      errorMessage 
+    });
+    
+    throw new Error(errorMessage || `Request failed with status ${res.status}`);
   }
 }
 
@@ -16,9 +34,14 @@ export async function apiRequest(
   console.log(`API request: ${method} ${url}`, { data });
   
   try {
+    const headers: Record<string, string> = {};
+    if (data) {
+      headers["Content-Type"] = "application/json";
+    }
+    
     const res = await fetch(url, {
       method,
-      headers: data ? { "Content-Type": "application/json" } : {},
+      headers,
       body: data ? JSON.stringify(data) : undefined,
       credentials: "include",
     });
@@ -46,6 +69,9 @@ export const getQueryFn: <T>(options: {
     try {
       const res = await fetch(queryKey[0] as string, {
         credentials: "include",
+        headers: {
+          "Accept": "application/json"
+        },
       });
 
       console.log(`Response from ${queryKey[0]}:`, { 

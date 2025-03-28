@@ -93,9 +93,22 @@ export function setupAuth(app: Express) {
 
   app.post("/api/register", async (req, res, next) => {
     try {
+      console.log("Received registration request:", { 
+        username: req.body.username,
+        name: req.body.name,
+        role: req.body.role,
+        // Don't log passwords
+      });
+      
+      // Validate required fields
+      if (!req.body.username || !req.body.password || !req.body.name || !req.body.role) {
+        return res.status(400).json({ message: "Missing required fields" });
+      }
+      
       const existingUser = await storage.getUserByUsername(req.body.username);
       if (existingUser) {
-        return res.status(400).send("Username already exists");
+        console.log(`Registration failed: Username ${req.body.username} already exists`);
+        return res.status(400).json({ message: "Username already exists" });
       }
 
       const hashedPassword = await hashPassword(req.body.password);
@@ -104,25 +117,50 @@ export function setupAuth(app: Express) {
         password: hashedPassword,
       });
 
+      console.log(`User created successfully: ${user.username} (${user.id})`);
+
       // Exclude password from response
       const { password, ...userWithoutPassword } = user;
 
       req.login(user, (err) => {
-        if (err) return next(err);
+        if (err) {
+          console.error("Login after registration failed:", err);
+          return next(err);
+        }
+        console.log(`User logged in after registration: ${user.username}`);
         res.status(201).json(userWithoutPassword);
       });
     } catch (err) {
-      next(err);
+      console.error("Registration error:", err);
+      res.status(500).json({ message: "Registration failed", error: String(err) });
     }
   });
 
   app.post("/api/login", (req, res, next) => {
+    console.log("Received login request for:", req.body.username);
+    
+    if (!req.body.username || !req.body.password) {
+      return res.status(400).json({ message: "Username and password are required" });
+    }
+    
     passport.authenticate("local", (err: Error | null, user: Express.User | false, info: { message: string }) => {
-      if (err) return next(err);
-      if (!user) return res.status(401).send("Invalid username or password");
+      if (err) {
+        console.error("Authentication error during login:", err);
+        return res.status(500).json({ message: "Login failed", error: String(err) });
+      }
+      
+      if (!user) {
+        console.log(`Login failed for user: ${req.body.username}`);
+        return res.status(401).json({ message: "Invalid username or password" });
+      }
 
       req.login(user, (err) => {
-        if (err) return next(err);
+        if (err) {
+          console.error("Session creation error during login:", err);
+          return res.status(500).json({ message: "Login failed", error: String(err) });
+        }
+        
+        console.log(`Login successful for user: ${(user as SelectUser).username}`);
         
         // Exclude password from response
         const { password, ...userWithoutPassword } = user as SelectUser;
@@ -132,14 +170,35 @@ export function setupAuth(app: Express) {
   });
 
   app.post("/api/logout", (req, res, next) => {
+    console.log("Logout request received");
+    
+    if (!req.isAuthenticated()) {
+      console.log("Logout request when not authenticated");
+      return res.status(200).json({ message: "Not logged in" });
+    }
+    
+    const username = (req.user as SelectUser)?.username;
+    console.log(`Logging out user: ${username}`);
+    
     req.logout((err) => {
-      if (err) return next(err);
-      res.sendStatus(200);
+      if (err) {
+        console.error("Logout error:", err);
+        return res.status(500).json({ message: "Logout failed", error: String(err) });
+      }
+      console.log(`User ${username} logged out successfully`);
+      res.status(200).json({ message: "Logged out successfully" });
     });
   });
 
   app.get("/api/user", (req, res) => {
-    if (!req.isAuthenticated()) return res.sendStatus(401);
+    console.log("Current user session request received");
+    
+    if (!req.isAuthenticated()) {
+      console.log("User session requested when not authenticated");
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+    
+    console.log(`Current user session: ${(req.user as SelectUser).username}`);
     
     // Exclude password from response
     const { password, ...userWithoutPassword } = req.user as SelectUser;
