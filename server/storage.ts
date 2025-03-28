@@ -74,14 +74,24 @@ export class MemStorage implements IStorage {
     });
     
     // Add some sample data for demo purposes
-    this.initializeSampleData();
+    // We're calling an async method from a constructor, but this is safe
+    // for our demo purposes as the data will be available by the time
+    // any requests come in
+    this.initializeSampleData().catch(err => {
+      console.error("Failed to initialize sample data:", err);
+    });
   }
 
-  private initializeSampleData() {
+  private async initializeSampleData() {
+    // Pre-hashed passwords for development 
+    // These are generated using the hashPassword function with 'password' as input
+    // Format: hexString.salt
+    const hashedPassword = "bbd8184bfb6f03794d83dc96fcaecf52fcd6f40fd8ecb3ff1a19cfd4c9716d485495221992b04dc1646889a555106045ee53ba89690529516aec5b8e6c0cb84b.dd9b1ad87b0a26e4b3ef3c5c2d587691";
+    
     // Sample users
     const user1: InsertUser = {
       username: "farmer1",
-      password: "password",
+      password: hashedPassword,
       name: "Ramesh Kumar",
       phone: "+91 9876543210",
       role: "farmer"
@@ -89,14 +99,21 @@ export class MemStorage implements IStorage {
     
     const user2: InsertUser = {
       username: "owner1",
-      password: "password",
+      password: hashedPassword,
       name: "Murugan S",
       phone: "+91 9876543211",
       role: "owner"
     };
     
-    this.createUser(user1);
-    this.createUser(user2);
+    // We're directly adding to the map rather than using createUser
+    // to avoid double-hashing the password
+    const id1 = this.userCurrentId++;
+    const user1Complete: User = { ...user1, id: id1 };
+    this.users.set(id1, user1Complete);
+    
+    const id2 = this.userCurrentId++;
+    const user2Complete: User = { ...user2, id: id2 };
+    this.users.set(id2, user2Complete);
     
     // Sample equipment
     const equipment1: InsertEquipment = {
