@@ -2,14 +2,14 @@ import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import NotFound from "@/pages/not-found";
 import FarmerDashboard from "@/pages/farmer-dashboard";
 import OwnerDashboard from "@/pages/owner-dashboard";
 import AuthPage from "@/pages/auth-page";
 import Header from "@/components/layout/header";
 import Footer from "@/components/layout/footer";
-import "./lib/i18n";
+import i18n from "./lib/i18n";
 import { AuthProvider, useAuth } from "@/hooks/use-auth";
 import { ProtectedRoute } from "./lib/protected-route";
 
@@ -18,8 +18,15 @@ function Router() {
   const { user, logoutMutation } = useAuth();
 
   const handleToggleLanguage = () => {
-    setLanguage(prev => prev === "en" ? "ta" : "en");
+    const newLanguage = language === "en" ? "ta" : "en";
+    setLanguage(newLanguage);
+    i18n.changeLanguage(newLanguage);
   };
+  
+  // Effect to sync i18n language with our state
+  useEffect(() => {
+    i18n.changeLanguage(language);
+  }, [language]);
 
   const handleLogout = () => {
     logoutMutation.mutate();

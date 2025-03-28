@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,7 @@ import { useLocation } from "wouter";
 import { Loader2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import i18n from "@/lib/i18n";
 
 export default function AuthPage() {
   const { t } = useTranslation();
@@ -18,9 +19,16 @@ export default function AuthPage() {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [role, setRole] = useState<"farmer" | "owner">("farmer");
+  const [language, setLanguage] = useState<string>(i18n.language || "en");
   
   const { user, loginMutation, registerMutation } = useAuth();
   const [_, setLocation] = useLocation();
+  
+  const handleToggleLanguage = () => {
+    const newLanguage = language === "en" ? "ta" : "en";
+    setLanguage(newLanguage);
+    i18n.changeLanguage(newLanguage);
+  };
   
   // Redirect if already logged in
   if (user) {
@@ -43,8 +51,20 @@ export default function AuthPage() {
       {/* Left side form */}
       <div className="flex flex-col justify-center items-center w-full lg:w-1/2 px-6 py-12">
         <div className="w-full max-w-md">
-          <h1 className="text-3xl font-bold mb-2">{t('auth.title')}</h1>
-          <p className="text-gray-600 mb-8">{t('auth.subtitle')}</p>
+          <div className="flex justify-between items-center mb-4">
+            <div>
+              <h1 className="text-3xl font-bold">{t('auth.title')}</h1>
+              <p className="text-gray-600">{t('auth.subtitle')}</p>
+            </div>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleToggleLanguage}
+              className="text-gray-600 text-sm font-medium px-2 py-1 rounded border border-gray-300"
+            >
+              {language === 'en' ? 'தமிழ்' : 'English'}
+            </Button>
+          </div>
           
           <Tabs defaultValue="login" value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="grid w-full grid-cols-2 mb-8">
