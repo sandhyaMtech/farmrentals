@@ -4,6 +4,28 @@ export const translations = {
       title: 'Village Wheels',
       subtitle: 'ஊர் சக்கரங்கள்'
     },
+    auth: {
+      login: 'Login',
+      loginButton: 'Sign In',
+      register: 'Register',
+      registerButton: 'Create Account',
+      username: 'Username',
+      password: 'Password',
+      fullName: 'Full Name',
+      fullNamePlaceholder: 'Enter your full name',
+      phone: 'Phone Number',
+      welcomeMessage: 'Welcome to Village Wheels',
+      demoCredentials: 'Demo Credentials (for testing)',
+      registerSuccess: 'Registration successful. Please login.'
+    },
+    nav: {
+      profile: 'My Profile',
+      switchRole: 'Switch Role',
+      logout: 'Logout',
+      dashboard: 'Dashboard',
+      bookings: 'My Bookings',
+      equipment: 'Equipment'
+    },
     common: {
       loading: 'Loading...',
       error: 'Something went wrong',
@@ -68,7 +90,8 @@ export const translations = {
         kmAway: 'km away',
         availableNow: 'Available: Now',
         availableFrom: 'Available: From',
-        ratings: 'ratings'
+        ratings: 'ratings',
+        owner: 'Equipment Owner'
       },
       myBookings: 'My Bookings',
       upcomingBookings: 'Upcoming Bookings',
@@ -163,6 +186,28 @@ export const translations = {
       title: 'வில்லேஜ் வீல்ஸ்',
       subtitle: 'ஊர் சக்கரங்கள்'
     },
+    auth: {
+      login: 'உள்நுழைய',
+      loginButton: 'உள்நுழைய',
+      register: 'பதிவு செய்ய',
+      registerButton: 'கணக்கை உருவாக்கு',
+      username: 'பயனர்பெயர்',
+      password: 'கடவுச்சொல்',
+      fullName: 'முழு பெயர்',
+      fullNamePlaceholder: 'உங்கள் முழு பெயரை உள்ளிடவும்',
+      phone: 'தொலைபேசி எண்',
+      welcomeMessage: 'வில்லேஜ் வீல்ஸுக்கு வரவேற்கிறோம்',
+      demoCredentials: 'செயல்விளக்க விவரங்கள் (சோதனைக்காக)',
+      registerSuccess: 'பதிவு வெற்றிகரமாக முடிந்தது. தயவுசெய்து உள்நுழையவும்.'
+    },
+    nav: {
+      profile: 'என் சுயவிவரம்',
+      switchRole: 'பங்கை மாற்றவும்',
+      logout: 'வெளியேறு',
+      dashboard: 'டாஷ்போர்டு',
+      bookings: 'எனது முன்பதிவுகள்',
+      equipment: 'உபகரணங்கள்'
+    },
     common: {
       loading: 'ஏற்றுகிறது...',
       error: 'ஏதோ தவறு நடந்துவிட்டது',
@@ -227,7 +272,8 @@ export const translations = {
         kmAway: 'கி.மீ தூரத்தில்',
         availableNow: 'கிடைக்கும்: இப்போது',
         availableFrom: 'கிடைக்கும்: இலிருந்து',
-        ratings: 'மதிப்பீடுகள்'
+        ratings: 'மதிப்பீடுகள்',
+        owner: 'உபகரண உரிமையாளர்'
       },
       myBookings: 'எனது முன்பதிவுகள்',
       upcomingBookings: 'வரவிருக்கும் முன்பதிவுகள்',

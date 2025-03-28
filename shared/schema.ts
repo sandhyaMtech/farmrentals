@@ -49,7 +49,12 @@ export const availability = pgTable("availability", {
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users);
 export const insertEquipmentSchema = createInsertSchema(equipment).omit({ id: true });
-export const insertBookingSchema = createInsertSchema(bookings).omit({ id: true, createdAt: true });
+export const insertBookingSchema = createInsertSchema(bookings)
+  .omit({ id: true, createdAt: true })
+  .extend({
+    startDate: z.coerce.date(),
+    endDate: z.coerce.date()
+  });
 export const insertAvailabilitySchema = createInsertSchema(availability).omit({ id: true });
 
 // Types

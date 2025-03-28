@@ -10,6 +10,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const apiRouter = express.Router();
   
   // User routes
+  apiRouter.get('/users/:id', async (req, res) => {
+    try {
+      const userId = Number(req.params.id);
+      const user = await storage.getUser(userId);
+      
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+      
+      // Don't send sensitive information like password
+      const { id, username, name, phone, role } = user;
+      res.json({ id, username, name, phone, role });
+    } catch (error) {
+      res.status(500).json({ message: 'Failed to fetch user' });
+    }
+  });
+  
   apiRouter.post('/users', async (req, res) => {
     try {
       const userData = insertUserSchema.parse(req.body);
@@ -38,7 +55,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: 'Invalid credentials' });
       }
       
-      res.json({ id: user.id, username: user.username, name: user.name, role: user.role });
+      res.json({ id: user.id, username: user.username, name: user.name, phone: user.phone, role: user.role });
     } catch (error) {
       res.status(500).json({ message: 'Login failed' });
     }
@@ -213,8 +230,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check if the equipment is available for the requested dates
       const isAvailable = await storage.checkAvailability(
         bookingData.equipmentId,
-        bookingData.startDate,
-        bookingData.endDate
+        new Date(bookingData.startDate),
+        new Date(bookingData.endDate)
       );
       
       if (!isAvailable) {

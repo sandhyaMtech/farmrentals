@@ -1,10 +1,11 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { StarRating } from "@/components/ui/star-rating";
-import { Equipment } from "@/types";
-import { MapPin, Clock } from "lucide-react";
+import { Equipment, User } from "@/types";
+import { MapPin, Clock, Phone, User as UserIcon } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { format } from "date-fns";
+import { useQuery } from "@tanstack/react-query";
 
 interface EquipmentCardProps {
   equipment: Equipment;
@@ -14,6 +15,17 @@ interface EquipmentCardProps {
 
 export default function EquipmentCard({ equipment, onBook, language }: EquipmentCardProps) {
   const { t } = useTranslation();
+  
+  // Fetch equipment owner details
+  const { data: owner } = useQuery({
+    queryKey: ['/api/users', equipment.ownerId],
+    queryFn: async () => {
+      const res = await fetch(`/api/users/${equipment.ownerId}`);
+      if (!res.ok) throw new Error('Failed to fetch owner details');
+      return res.json();
+    },
+    staleTime: 1000 * 60 * 5 // 5 minutes
+  });
   
   const formatAvailability = () => {
     // This would ideally check the actual availability data
@@ -51,7 +63,7 @@ export default function EquipmentCard({ equipment, onBook, language }: Equipment
           {formatAvailability()}
         </div>
         
-        <div className="flex items-center mt-1 mb-3 text-sm">
+        <div className="flex items-center mt-1 text-sm">
           <StarRating 
             rating={equipment.rating} 
             count={equipment.ratingCount} 
@@ -59,8 +71,23 @@ export default function EquipmentCard({ equipment, onBook, language }: Equipment
           />
         </div>
         
+        {/* Owner information */}
+        {owner && (
+          <div className="mt-3 p-2 bg-gray-50 rounded-md">
+            <p className="text-sm font-medium text-gray-700">{t('farmer.equipmentCard.owner')}</p>
+            <div className="flex items-center mt-1 text-sm text-gray-600">
+              <UserIcon className="h-4 w-4 mr-1" />
+              <span>{owner.name}</span>
+            </div>
+            <div className="flex items-center mt-1 text-sm text-gray-600">
+              <Phone className="h-4 w-4 mr-1" />
+              <span>{owner.phone}</span>
+            </div>
+          </div>
+        )}
+        
         <Button 
-          className="w-full bg-primary hover:bg-primary-dark text-white font-medium py-2 rounded transition-colors"
+          className="w-full bg-primary hover:bg-primary-dark text-white font-medium py-2 rounded transition-colors mt-3"
           onClick={onBook}
         >
           {t('common.bookNow')}
