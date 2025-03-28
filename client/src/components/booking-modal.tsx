@@ -126,7 +126,7 @@ export default function BookingModal({
   
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{t('booking.title')}</DialogTitle>
           <DialogDescription>
@@ -151,7 +151,7 @@ export default function BookingModal({
         <div className="space-y-4">
           <div>
             <Label>{t('booking.selectDates')}</Label>
-            <div className="mt-2">
+            <div className="mt-2 max-h-[320px] overflow-y-auto">
               <Calendar
                 mode="range"
                 selected={selectedDates}
@@ -191,7 +191,7 @@ export default function BookingModal({
                   <SelectTrigger className="mt-1">
                     <SelectValue placeholder="Select purpose" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="max-h-[200px] overflow-y-auto">
                     <SelectItem value="Field Preparation">{t('booking.purposes.fieldPreparation')}</SelectItem>
                     <SelectItem value="Harvesting">{t('booking.purposes.harvesting')}</SelectItem>
                     <SelectItem value="Planting">{t('booking.purposes.planting')}</SelectItem>
