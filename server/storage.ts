@@ -12,8 +12,13 @@ import {
   type InsertBooking, 
   type InsertAvailability 
 } from "@shared/schema";
+import session from "express-session";
+import createMemoryStore from "memorystore";
+
+const MemoryStore = createMemoryStore(session);
 
 export interface IStorage {
+  sessionStore: session.Store;
   // User methods
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
@@ -53,6 +58,7 @@ export class MemStorage implements IStorage {
   private equipmentCurrentId: number;
   private bookingCurrentId: number;
   private availabilityCurrentId: number;
+  public sessionStore: session.Store;
 
   constructor() {
     this.users = new Map();
@@ -63,6 +69,9 @@ export class MemStorage implements IStorage {
     this.equipmentCurrentId = 1;
     this.bookingCurrentId = 1;
     this.availabilityCurrentId = 1;
+    this.sessionStore = new MemoryStore({
+      checkPeriod: 86400000 // 24 hours
+    });
     
     // Add some sample data for demo purposes
     this.initializeSampleData();
