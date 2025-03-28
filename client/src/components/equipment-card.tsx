@@ -38,7 +38,7 @@ export default function EquipmentCard({ equipment, onBook, language }: Equipment
   return (
     <Card className="overflow-hidden">
       <img 
-        src={`${equipment.imageUrl}?ixlib=rb-1.2.1&auto=format&fit=crop&w=600&h=400&q=80`} 
+        src={equipment.imageUrl} 
         alt={equipment.name} 
         className="w-full h-48 object-cover"
       />

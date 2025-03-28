@@ -1,11 +1,22 @@
-import type { Express } from "express";
+import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import express from "express";
 import { z } from "zod";
 import { insertEquipmentSchema, insertBookingSchema, insertUserSchema } from "@shared/schema";
+import { setupAuth } from "./auth";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Set up authentication
+  setupAuth(app);
+
+  // Middleware to check if user is authenticated
+  const isAuthenticated = (req: Request, res: Response, next: NextFunction) => {
+    if (req.isAuthenticated()) {
+      return next();
+    }
+    res.status(401).json({ message: 'Unauthorized' });
+  };
   // prefix all routes with /api
   const apiRouter = express.Router();
   
@@ -27,39 +38,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  apiRouter.post('/users', async (req, res) => {
-    try {
-      const userData = insertUserSchema.parse(req.body);
-      const existingUser = await storage.getUserByUsername(userData.username);
-      
-      if (existingUser) {
-        return res.status(400).json({ message: 'Username already exists' });
-      }
-      
-      const user = await storage.createUser(userData);
-      res.status(201).json(user);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: 'Invalid user data', errors: error.errors });
-      }
-      res.status(500).json({ message: 'Failed to create user' });
-    }
-  });
+  // User registration is handled by the auth.ts file
   
-  apiRouter.post('/login', async (req, res) => {
-    try {
-      const { username, password } = req.body;
-      const user = await storage.getUserByUsername(username);
-      
-      if (!user || user.password !== password) {
-        return res.status(401).json({ message: 'Invalid credentials' });
-      }
-      
-      res.json({ id: user.id, username: user.username, name: user.name, phone: user.phone, role: user.role });
-    } catch (error) {
-      res.status(500).json({ message: 'Login failed' });
-    }
-  });
+  // Login, logout, and register routes are handled by the auth.ts file
   
   // Equipment routes
   apiRouter.get('/equipment', async (req, res) => {

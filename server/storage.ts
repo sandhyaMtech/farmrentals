@@ -97,7 +97,7 @@ export class MemStorage implements IStorage {
       rate: 2500,
       location: "Thiruvarur",
       distance: 3,
-      imageUrl: "https://images.unsplash.com/photo-1588099246635-d7472c34ec18",
+      imageUrl: "https://placehold.co/600x400/green/white?text=Tractor",
       rating: 4,
       ratingCount: 18,
       ownerId: 2,
@@ -111,7 +111,7 @@ export class MemStorage implements IStorage {
       rate: 8000,
       location: "Thanjavur",
       distance: 12,
-      imageUrl: "https://images.unsplash.com/photo-1588770423960-3b8bc0b9116e",
+      imageUrl: "https://placehold.co/600x400/orange/white?text=Harvester",
       rating: 5,
       ratingCount: 25,
       ownerId: 2,
@@ -125,7 +125,7 @@ export class MemStorage implements IStorage {
       rate: 1200,
       location: "Tiruvarur",
       distance: 5,
-      imageUrl: "https://images.unsplash.com/photo-1566083646072-52b626a5772d",
+      imageUrl: "https://placehold.co/600x400/brown/white?text=Plow",
       rating: 4,
       ratingCount: 12,
       ownerId: 2,
@@ -350,7 +350,10 @@ export class MemStorage implements IStorage {
     
     return Array.from(this.availability.values()).find(
       (availability) => {
-        const availDateStr = availability.date.toISOString().split('T')[0];
+        const availDate = availability.date instanceof Date 
+          ? availability.date 
+          : new Date(availability.date);
+        const availDateStr = availDate.toISOString().split('T')[0];
         return availability.equipmentId === equipmentId && availDateStr === dateString;
       }
     );

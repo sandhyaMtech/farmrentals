@@ -55,7 +55,11 @@ export const insertBookingSchema = createInsertSchema(bookings)
     startDate: z.coerce.date(),
     endDate: z.coerce.date()
   });
-export const insertAvailabilitySchema = createInsertSchema(availability).omit({ id: true });
+export const insertAvailabilitySchema = createInsertSchema(availability)
+  .omit({ id: true })
+  .extend({
+    date: z.coerce.date()
+  });
 
 // Types
 export type User = typeof users.$inferSelect;
