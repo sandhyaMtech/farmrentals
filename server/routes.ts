@@ -281,6 +281,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Diagnostic endpoint for testing
+  apiRouter.get('/status', (req, res) => {
+    res.json({ status: 'ok', time: new Date().toISOString() });
+  });
+
   // Register the API router
   app.use('/api', apiRouter);
   
