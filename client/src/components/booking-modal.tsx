@@ -90,16 +90,19 @@ export default function BookingModal({
     const insurance = Math.round(baseAmount * 0.12); // 12% insurance
     const totalAmount = baseAmount + serviceFee + insurance;
     
+    // Format dates to ISO string for API
     const bookingData = {
       equipmentId: equipment.id,
       farmerId: currentUser.id,
       ownerId: equipment.ownerId,
-      startDate: selectedDates.from,
-      endDate: selectedDates.to,
+      startDate: selectedDates.from?.toISOString(),
+      endDate: selectedDates.to?.toISOString(),
       status: "pending",
       purpose: purpose,
       totalAmount: totalAmount
     };
+    
+    console.log('Submitting booking data:', bookingData);
     
     createBookingMutation.mutate(bookingData);
   };

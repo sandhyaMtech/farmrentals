@@ -208,11 +208,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: 'Equipment not found' });
       }
       
+      // Log the booking data for debugging
+      console.log('Creating booking with data:', bookingData);
+      
       // Check if the equipment is available for the requested dates
+      const startDate = new Date(bookingData.startDate);
+      const endDate = new Date(bookingData.endDate);
+      
+      console.log('Checking availability for dates:', { 
+        equipmentId: bookingData.equipmentId,
+        startDate: startDate.toISOString(), 
+        endDate: endDate.toISOString() 
+      });
+      
       const isAvailable = await storage.checkAvailability(
         bookingData.equipmentId,
-        new Date(bookingData.startDate),
-        new Date(bookingData.endDate)
+        startDate,
+        endDate
       );
       
       if (!isAvailable) {
