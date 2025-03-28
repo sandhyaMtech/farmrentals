@@ -1,5 +1,8 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
 
+// Get the base URL from environment variables or default to empty string
+const BASE_URL = import.meta.env.VITE_APP_BASE_URL || '';
+
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
     let errorMessage = res.statusText;
@@ -31,7 +34,9 @@ export async function apiRequest(
   url: string,
   data?: unknown | undefined,
 ): Promise<Response> {
-  console.log(`API request: ${method} ${url}`, { data });
+  // Prepend the base URL to the request URL if it doesn't start with http
+  const fullUrl = url.startsWith('http') ? url : `${BASE_URL}${url}`;
+  console.log(`API request: ${method} ${fullUrl}`, { data });
   
   try {
     const headers: Record<string, string> = {};
@@ -39,14 +44,14 @@ export async function apiRequest(
       headers["Content-Type"] = "application/json";
     }
     
-    const res = await fetch(url, {
+    const res = await fetch(fullUrl, {
       method,
       headers,
       body: data ? JSON.stringify(data) : undefined,
       credentials: "include",
     });
 
-    console.log(`API response from ${method} ${url}:`, { 
+    console.log(`API response from ${method} ${fullUrl}:`, { 
       status: res.status, 
       statusText: res.statusText
     });
@@ -54,7 +59,7 @@ export async function apiRequest(
     await throwIfResNotOk(res);
     return res;
   } catch (error) {
-    console.error(`API request error for ${method} ${url}:`, error);
+    console.error(`API request error for ${method} ${fullUrl}:`, error);
     throw error;
   }
 }
@@ -65,16 +70,20 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    console.log(`Fetching data from: ${queryKey[0]}`, { unauthorizedBehavior });
+    // Prepend the base URL to the request URL if it's a string and doesn't start with http
+    const url = queryKey[0] as string;
+    const fullUrl = url.startsWith('http') ? url : `${BASE_URL}${url}`;
+    console.log(`Fetching data from: ${fullUrl}`, { unauthorizedBehavior });
+    
     try {
-      const res = await fetch(queryKey[0] as string, {
+      const res = await fetch(fullUrl, {
         credentials: "include",
         headers: {
           "Accept": "application/json"
         },
       });
 
-      console.log(`Response from ${queryKey[0]}:`, { 
+      console.log(`Response from ${fullUrl}:`, { 
         status: res.status, 
         statusText: res.statusText
       });
@@ -86,10 +95,10 @@ export const getQueryFn: <T>(options: {
 
       await throwIfResNotOk(res);
       const data = await res.json();
-      console.log(`Data from ${queryKey[0]}:`, data);
+      console.log(`Data from ${fullUrl}:`, data);
       return data;
     } catch (error) {
-      console.error(`Error fetching from ${queryKey[0]}:`, error);
+      console.error(`Error fetching from ${fullUrl}:`, error);
       throw error;
     }
   };
