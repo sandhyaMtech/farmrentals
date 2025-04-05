@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Dialog, DialogContent, DialogTitle, DialogHeader, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,7 @@ import { Equipment, User, DateSelection } from "@/types";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { queryClient } from "@/lib/queryClient";
 import { apiRequest } from "@/lib/queryClient";
-import { format, addDays, differenceInDays } from "date-fns";
+import { format, addDays, differenceInDays, isSameDay, isBefore, isAfter } from "date-fns";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -38,7 +38,22 @@ export default function BookingModal({
     to: undefined
   });
   
+  const [startTime, setStartTime] = useState<string>("08:00");
+  const [endTime, setEndTime] = useState<string>("17:00");
+  const [sameDay, setSameDay] = useState<boolean>(false);
   const [purpose, setPurpose] = useState<string>("Field Preparation");
+  
+  // Handle date selection to fix double-click error and allow same day bookings
+  useEffect(() => {
+    if (selectedDates.from && selectedDates.to) {
+      // Check if it's a same day booking
+      if (isSameDay(selectedDates.from, selectedDates.to)) {
+        setSameDay(true);
+      } else {
+        setSameDay(false);
+      }
+    }
+  }, [selectedDates.from, selectedDates.to]);
   
   // Get equipment availability
   const { data: availability = [] } = useQuery({
@@ -84,19 +99,34 @@ export default function BookingModal({
       return;
     }
     
+    // Create copies of the dates to avoid mutating the original dates
+    const startDate = new Date(selectedDates.from);
+    const endDate = new Date(selectedDates.to);
+    
+    // Add time to the dates
+    if (startTime) {
+      const [startHours, startMinutes] = startTime.split(':').map(Number);
+      startDate.setHours(startHours, startMinutes, 0, 0);
+    }
+    
+    if (endTime) {
+      const [endHours, endMinutes] = endTime.split(':').map(Number);
+      endDate.setHours(endHours, endMinutes, 0, 0);
+    }
+    
     const days = differenceInDays(selectedDates.to, selectedDates.from) + 1;
     const baseAmount = equipment.rate * days;
     const serviceFee = Math.round(baseAmount * 0.1); // 10% service fee
     const insurance = Math.round(baseAmount * 0.12); // 12% insurance
     const totalAmount = baseAmount + serviceFee + insurance;
     
-    // Format dates to ISO string for API
+    // Format dates to ISO string for API with time included
     const bookingData = {
       equipmentId: equipment.id,
       farmerId: currentUser.id,
       ownerId: equipment.ownerId,
-      startDate: selectedDates.from?.toISOString(),
-      endDate: selectedDates.to?.toISOString(),
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
       status: "pending",
       purpose: purpose,
       totalAmount: totalAmount
@@ -162,6 +192,58 @@ export default function BookingModal({
                 ]}
               />
             </div>
+            
+            {/* Time selection */}
+            {selectedDates.from && (
+              <div className="mt-4 grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="startTime" className="text-sm">
+                    {t('booking.startTime')}
+                  </Label>
+                  <Input
+                    id="startTime"
+                    type="time"
+                    value={startTime}
+                    onChange={(e) => setStartTime(e.target.value)}
+                    className="mt-1"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="endTime" className="text-sm">
+                    {t('booking.endTime')}
+                  </Label>
+                  <Input
+                    id="endTime"
+                    type="time"
+                    value={endTime}
+                    onChange={(e) => setEndTime(e.target.value)}
+                    className="mt-1"
+                  />
+                </div>
+              </div>
+            )}
+            
+            {/* Date-time selection info */}
+            {selectedDates.from && selectedDates.to && (
+              <div className="mt-2 text-sm text-gray-600">
+                {sameDay ? (
+                  <p>
+                    {t('booking.selectedSameDay', {
+                      date: format(selectedDates.from, 'MMM dd, yyyy'),
+                      startTime: startTime,
+                      endTime: endTime
+                    })}
+                  </p>
+                ) : (
+                  <p>
+                    {t('booking.selectedMultipleDays', {
+                      startDate: format(selectedDates.from, 'MMM dd, yyyy'),
+                      endDate: format(selectedDates.to, 'MMM dd, yyyy')
+                    })}
+                  </p>
+                )}
+              </div>
+            )}
           </div>
           
           <div>

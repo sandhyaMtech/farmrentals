@@ -10,6 +10,7 @@ import { Plus, Settings, FileText, Sliders } from "lucide-react";
 import { User, Equipment, Booking } from "@/types";
 import BookingItem from "@/components/booking-item";
 import AvailabilityCalendar from "@/components/availability-calendar";
+import AvailabilityManagementDialog from "@/components/availability-management-dialog";
 import EquipmentForm from "@/components/equipment-form";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -21,6 +22,7 @@ interface OwnerDashboardProps {
 export default function OwnerDashboard({ currentUser, language }: OwnerDashboardProps) {
   const { t } = useTranslation();
   const [isEquipmentDialogOpen, setIsEquipmentDialogOpen] = useState(false);
+  const [isAvailabilityDialogOpen, setIsAvailabilityDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<string>("all");
   const [selectedEquipment, setSelectedEquipment] = useState<Equipment | null>(null);
 
@@ -308,6 +310,7 @@ export default function OwnerDashboard({ currentUser, language }: OwnerDashboard
               <Button 
                 variant="outline"
                 className="w-full text-gray-700 font-medium py-2 rounded border border-gray-300 mb-3 flex justify-center items-center"
+                onClick={() => setIsAvailabilityDialogOpen(true)}
               >
                 <Sliders className="h-5 w-5 mr-2" />
                 {t('owner.quickActions.manageAvailability')}
@@ -353,6 +356,14 @@ export default function OwnerDashboard({ currentUser, language }: OwnerDashboard
           />
         </DialogContent>
       </Dialog>
+      
+      {/* Availability Management Dialog */}
+      <AvailabilityManagementDialog
+        isOpen={isAvailabilityDialogOpen}
+        onClose={() => setIsAvailabilityDialogOpen(false)}
+        equipment={equipment}
+        language={language}
+      />
     </div>
   );
 }

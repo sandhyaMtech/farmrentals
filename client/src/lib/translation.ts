@@ -154,7 +154,14 @@ export const translations = {
         title: 'Equipment Availability',
         availabilityLegend: 'Available',
         bookedLegend: 'Booked',
-        selectedLegend: 'Selected'
+        selectedLegend: 'Selected',
+        selectEquipment: 'Select Equipment',
+        selectDates: 'Select Dates',
+        markAvailable: 'Mark as Available',
+        markUnavailable: 'Mark as Unavailable',
+        saveChanges: 'Save Changes',
+        availabilityUpdated: 'Availability updated',
+        managingAvailability: 'Managing Availability'
       },
       quickActions: {
         title: 'Quick Actions',
@@ -171,6 +178,10 @@ export const translations = {
       fullName: 'Full Name',
       phoneNumber: 'Phone Number',
       purposeOfRental: 'Purpose of Rental',
+      startTime: 'Start Time',
+      endTime: 'End Time',
+      selectedSameDay: 'Selected: {{date}} from {{startTime}} to {{endTime}}',
+      selectedMultipleDays: 'Selected: {{startDate}} to {{endDate}}',
       purposes: {
         fieldPreparation: 'Field Preparation',
         harvesting: 'Harvesting',
@@ -362,7 +373,14 @@ export const translations = {
         title: 'உபகரண கிடைக்கும் தன்மை',
         availabilityLegend: 'கிடைக்கும்',
         bookedLegend: 'முன்பதிவு செய்யப்பட்டது',
-        selectedLegend: 'தேர்ந்தெடுக்கப்பட்டது'
+        selectedLegend: 'தேர்ந்தெடுக்கப்பட்டது',
+        selectEquipment: 'உபகரணத்தைத் தேர்ந்தெடுக்கவும்',
+        selectDates: 'தேதிகளைத் தேர்ந்தெடுக்கவும்',
+        markAvailable: 'கிடைக்கும் என்று குறிக்கவும்',
+        markUnavailable: 'கிடைக்காது என்று குறிக்கவும்',
+        saveChanges: 'மாற்றங்களைச் சேமிக்கவும்',
+        availabilityUpdated: 'கிடைக்கும் தன்மை புதுப்பிக்கப்பட்டது',
+        managingAvailability: 'கிடைக்கும் தன்மையை நிர்வகித்தல்'
       },
       quickActions: {
         title: 'விரைவான செயல்கள்',
@@ -379,6 +397,10 @@ export const translations = {
       fullName: 'முழு பெயர்',
       phoneNumber: 'தொலைபேசி எண்',
       purposeOfRental: 'வாடகையின் நோக்கம்',
+      startTime: 'தொடக்க நேரம்',
+      endTime: 'முடிவு நேரம்',
+      selectedSameDay: 'தேர்ந்தெடுக்கப்பட்டது: {{date}}, {{startTime}} முதல் {{endTime}} வரை',
+      selectedMultipleDays: 'தேர்ந்தெடுக்கப்பட்டது: {{startDate}} முதல் {{endDate}} வரை',
       purposes: {
         fieldPreparation: 'நிலம் தயாரித்தல்',
         harvesting: 'அறுவடை செய்தல்',

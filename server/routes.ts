@@ -279,6 +279,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  apiRouter.post('/availability', isAuthenticated, async (req, res) => {
+    try {
+      const { equipmentId, date, available } = req.body;
+      
+      if (!equipmentId || !date) {
+        return res.status(400).json({ message: 'Missing required fields' });
+      }
+      
+      const availability = await storage.createAvailability({
+        equipmentId,
+        date: new Date(date),
+        available: available !== undefined ? available : true
+      });
+      
+      res.status(201).json(availability);
+    } catch (error) {
+      res.status(500).json({ message: 'Failed to create availability' });
+    }
+  });
+  
+  apiRouter.patch('/availability/:id', isAuthenticated, async (req, res) => {
+    try {
+      const id = Number(req.params.id);
+      const { available } = req.body;
+      
+      if (available === undefined) {
+        return res.status(400).json({ message: 'Missing required fields' });
+      }
+      
+      const updatedAvailability = await storage.updateAvailability(id, available);
+      
+      if (!updatedAvailability) {
+        return res.status(404).json({ message: 'Availability not found' });
+      }
+      
+      res.json(updatedAvailability);
+    } catch (error) {
+      res.status(500).json({ message: 'Failed to update availability' });
+    }
+  });
+  
   apiRouter.get('/check-availability', async (req, res) => {
     try {
       const { equipmentId, startDate, endDate } = req.query;
