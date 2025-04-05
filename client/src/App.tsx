@@ -11,6 +11,7 @@ import MobileAuthPage from "@/pages/mobile-auth-page";
 import MobileBrowsePage from "@/pages/mobile-browse-page";
 import MobileBookingsPage from "@/pages/mobile-bookings-page";
 import MobileEquipmentPage from "@/pages/mobile-equipment-page";
+import ProfilePage from "@/pages/profile-page";
 import Header from "@/components/layout/header";
 import Footer from "@/components/layout/footer";
 import i18n from "./lib/i18n";
@@ -77,6 +78,10 @@ function Router() {
             <ProtectedRoute 
               path="/equipment" 
               component={() => <MobileEquipmentPage language={language} />} 
+            />
+            <ProtectedRoute 
+              path="/profile" 
+              component={() => <ProfilePage language={language} onToggleLanguage={handleToggleLanguage} />} 
             />
             <Route component={NotFound} />
           </Switch>
