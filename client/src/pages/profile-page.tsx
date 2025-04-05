@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useLocation } from 'wouter';
 import { MobileLayout } from '@/components/layout/mobile-layout';
 import { useAuth } from '@/hooks/use-auth';
@@ -9,7 +9,9 @@ import {
   Settings, 
   User, 
   Phone,
-  Shield
+  Shield,
+  MessageSquare,
+  AlertTriangle
 } from 'lucide-react';
 import {
   Card,
@@ -21,6 +23,8 @@ import {
 } from "@/components/ui/card";
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import AIChatbot from '@/components/ai-chatbot';
+import ComplaintForm from '@/components/complaint-form';
 
 interface ProfilePageProps {
   language: string;
@@ -30,6 +34,8 @@ interface ProfilePageProps {
 export default function ProfilePage({ language, onToggleLanguage }: ProfilePageProps) {
   const [location, navigate] = useLocation();
   const { user, logoutMutation } = useAuth();
+  const [chatbotOpen, setChatbotOpen] = useState(false);
+  const [complaintFormOpen, setComplaintFormOpen] = useState(false);
   
   const translations = {
     en: {
@@ -53,7 +59,12 @@ export default function ProfilePage({ language, onToggleLanguage }: ProfilePageP
       contact: 'Contact Support',
       aboutApp: 'About Village Wheels',
       aboutDescription: 'Village Wheels connects farmers with equipment owners to make farming equipment accessible to everyone.',
-      contactDescription: 'Having issues with the app? Contact our support team.'
+      contactDescription: 'Having issues with the app? Contact our support team.',
+      chatWithAI: 'Chat with AI Assistant',
+      chatDescription: 'Get instant answers to your questions about the platform',
+      fileComplaint: 'File a Complaint',
+      complaintDescription: 'Report issues with equipment, drivers, or service',
+      supportOptions: 'Support Options'
     },
     ta: {
       profile: 'சுயவிவரம்',
@@ -76,7 +87,12 @@ export default function ProfilePage({ language, onToggleLanguage }: ProfilePageP
       contact: 'ஆதரவைத் தொடர்பு கொள்ளவும்',
       aboutApp: 'கிராம சக்கரங்களைப் பற்றி',
       aboutDescription: 'கிராம சக்கரங்கள் விவசாயிகளை உபகரண உரிமையாளர்களுடன் இணைத்து, விவசாய உபகரணங்களை அனைவருக்கும் அணுகக்கூடியதாக்குகிறது.',
-      contactDescription: 'பயன்பாட்டில் சிக்கல்கள் உள்ளதா? எங்கள் ஆதரவு குழுவைத் தொடர்பு கொள்ளவும்.'
+      contactDescription: 'பயன்பாட்டில் சிக்கல்கள் உள்ளதா? எங்கள் ஆதரவு குழுவைத் தொடர்பு கொள்ளவும்.',
+      chatWithAI: 'செயற்கை நுண்ணறிவு உதவியாளருடன் அரட்டை',
+      chatDescription: 'தளம் பற்றிய உங்கள் கேள்விகளுக்கு உடனடி பதில்களைப் பெறுங்கள்',
+      fileComplaint: 'புகார் தாக்கல் செய்யவும்',
+      complaintDescription: 'உபகரணங்கள், டிரைவர்கள் அல்லது சேவை பற்றிய சிக்கல்களைப் புகாரளிக்கவும்',
+      supportOptions: 'ஆதரவு விருப்பங்கள்'
     }
   };
   
@@ -138,6 +154,50 @@ export default function ProfilePage({ language, onToggleLanguage }: ProfilePageP
                 <span className="text-xs text-muted-foreground">{t.role}</span>
                 <span>{getRole()}</span>
               </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        {/* Support Options Card */}
+        <Card>
+          <CardHeader>
+            <CardTitle>{t.supportOptions}</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* AI Chatbot Option */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <MessageSquare className="h-5 w-5 mr-3 text-muted-foreground" />
+                <div>
+                  <div className="font-medium">{t.chatWithAI}</div>
+                  <div className="text-sm text-muted-foreground">
+                    {t.chatDescription}
+                  </div>
+                </div>
+              </div>
+              <Button variant="outline" onClick={() => setChatbotOpen(true)}>
+                <MessageSquare className="h-4 w-4 mr-2" />
+                Chat
+              </Button>
+            </div>
+            
+            <Separator />
+            
+            {/* File Complaint Option */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <AlertTriangle className="h-5 w-5 mr-3 text-muted-foreground" />
+                <div>
+                  <div className="font-medium">{t.fileComplaint}</div>
+                  <div className="text-sm text-muted-foreground">
+                    {t.complaintDescription}
+                  </div>
+                </div>
+              </div>
+              <Button variant="outline" onClick={() => setComplaintFormOpen(true)}>
+                <AlertTriangle className="h-4 w-4 mr-2" />
+                Report
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -209,6 +269,20 @@ export default function ProfilePage({ language, onToggleLanguage }: ProfilePageP
           {t.logout}
         </Button>
       </div>
+      
+      {/* AI Chatbot */}
+      <AIChatbot 
+        language={language}
+        isOpen={chatbotOpen}
+        onClose={() => setChatbotOpen(false)}
+      />
+      
+      {/* Complaint Form */}
+      <ComplaintForm 
+        language={language}
+        isOpen={complaintFormOpen}
+        onClose={() => setComplaintFormOpen(false)}
+      />
     </MobileLayout>
   );
 }

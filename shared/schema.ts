@@ -46,6 +46,32 @@ export const availability = pgTable("availability", {
   available: boolean("available").notNull().default(true),
 });
 
+// New schema for complaints
+export const complaints = pgTable("complaints", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  category: text("category").notNull(),
+  subject: text("subject").notNull(),
+  description: text("description").notNull(),
+  bookingId: text("booking_id"),
+  contactName: text("contact_name"),
+  contactPhone: text("contact_phone"),
+  contactMethod: text("contact_method").default("email"), // 'email' or 'phone'
+  reference: text("reference").notNull(),
+  status: text("status").default("submitted"), // 'submitted', 'under_review', 'resolved', 'closed'
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// New schema for AI chat conversations
+export const chatMessages = pgTable("chat_messages", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  content: text("content").notNull(),
+  role: text("role").notNull(), // 'user' or 'assistant'
+  timestamp: timestamp("timestamp").defaultNow(),
+});
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users);
 export const insertEquipmentSchema = createInsertSchema(equipment).omit({ id: true });
@@ -61,13 +87,23 @@ export const insertAvailabilitySchema = createInsertSchema(availability)
     date: z.coerce.date()
   });
 
+export const insertComplaintSchema = createInsertSchema(complaints)
+  .omit({ id: true, createdAt: true, updatedAt: true, reference: true, status: true });
+
+export const insertChatMessageSchema = createInsertSchema(chatMessages)
+  .omit({ id: true, timestamp: true });
+
 // Types
 export type User = typeof users.$inferSelect;
 export type Equipment = typeof equipment.$inferSelect;
 export type Booking = typeof bookings.$inferSelect;
 export type Availability = typeof availability.$inferSelect;
+export type Complaint = typeof complaints.$inferSelect;
+export type ChatMessage = typeof chatMessages.$inferSelect;
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type InsertEquipment = z.infer<typeof insertEquipmentSchema>;
 export type InsertBooking = z.infer<typeof insertBookingSchema>;
 export type InsertAvailability = z.infer<typeof insertAvailabilitySchema>;
+export type InsertComplaint = z.infer<typeof insertComplaintSchema>;
+export type InsertChatMessage = z.infer<typeof insertChatMessageSchema>;

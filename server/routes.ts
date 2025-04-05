@@ -3,7 +3,13 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import express from "express";
 import { z } from "zod";
-import { insertEquipmentSchema, insertBookingSchema, insertUserSchema } from "@shared/schema";
+import { 
+  insertEquipmentSchema, 
+  insertBookingSchema, 
+  insertUserSchema,
+  insertComplaintSchema,
+  insertChatMessageSchema
+} from "@shared/schema";
 import { setupAuth } from "./auth";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -290,6 +296,127 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ available: isAvailable });
     } catch (error) {
       res.status(500).json({ message: 'Failed to check availability' });
+    }
+  });
+  
+  // Complaints Routes
+  apiRouter.get('/complaints', isAuthenticated, async (req, res) => {
+    try {
+      let complaints;
+      const { userId, status } = req.query;
+      
+      if (userId) {
+        complaints = await storage.getComplaintsByUser(Number(userId));
+      } else if (status) {
+        // Only owners can view all complaints by status
+        if (req.user?.role !== 'owner') {
+          return res.status(403).json({ message: 'Not authorized to view these complaints' });
+        }
+        complaints = await storage.getComplaintsByStatus(status as string);
+      } else {
+        // Default to showing the user's own complaints
+        complaints = await storage.getComplaintsByUser(req.user!.id);
+      }
+      
+      res.json(complaints);
+    } catch (error) {
+      res.status(500).json({ message: 'Failed to fetch complaints' });
+    }
+  });
+  
+  apiRouter.get('/complaints/:id', isAuthenticated, async (req, res) => {
+    try {
+      const complaint = await storage.getComplaint(Number(req.params.id));
+      
+      if (!complaint) {
+        return res.status(404).json({ message: 'Complaint not found' });
+      }
+      
+      // Users can only view their own complaints, owners can view all
+      if (complaint.userId !== req.user!.id && req.user?.role !== 'owner') {
+        return res.status(403).json({ message: 'Not authorized to view this complaint' });
+      }
+      
+      res.json(complaint);
+    } catch (error) {
+      res.status(500).json({ message: 'Failed to fetch complaint' });
+    }
+  });
+  
+  apiRouter.post('/complaints', isAuthenticated, async (req, res) => {
+    try {
+      // Add the user ID to the complaint data
+      const complaintData = {
+        ...req.body,
+        userId: req.user!.id
+      };
+      
+      const validatedData = insertComplaintSchema.parse(complaintData);
+      const complaint = await storage.createComplaint(validatedData);
+      res.status(201).json(complaint);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: 'Invalid complaint data', errors: error.errors });
+      }
+      res.status(500).json({ message: 'Failed to create complaint' });
+    }
+  });
+  
+  apiRouter.patch('/complaints/:id/status', isAuthenticated, async (req, res) => {
+    try {
+      const id = Number(req.params.id);
+      const { status } = req.body;
+      
+      // Only owners can update complaint status
+      if (req.user?.role !== 'owner') {
+        return res.status(403).json({ message: 'Not authorized to update complaint status' });
+      }
+      
+      if (!['submitted', 'under_review', 'resolved', 'closed'].includes(status)) {
+        return res.status(400).json({ message: 'Invalid status' });
+      }
+      
+      const updatedComplaint = await storage.updateComplaintStatus(id, status);
+      
+      if (!updatedComplaint) {
+        return res.status(404).json({ message: 'Complaint not found' });
+      }
+      
+      res.json(updatedComplaint);
+    } catch (error) {
+      res.status(500).json({ message: 'Failed to update complaint status' });
+    }
+  });
+  
+  // Chat API Routes
+  apiRouter.get('/chat', isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user!.id;
+      const limit = req.query.limit ? Number(req.query.limit) : undefined;
+      
+      const messages = await storage.getChatMessages(userId, limit);
+      res.json(messages);
+    } catch (error) {
+      res.status(500).json({ message: 'Failed to fetch chat messages' });
+    }
+  });
+  
+  apiRouter.post('/chat', isAuthenticated, async (req, res) => {
+    try {
+      // Add the user ID to the message data
+      const messageData = {
+        ...req.body,
+        userId: req.user!.id
+      };
+      
+      const validatedData = insertChatMessageSchema.parse(messageData);
+      const message = await storage.createChatMessage(validatedData);
+      res.status(201).json(message);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: 'Invalid message data', errors: error.errors });
+      }
+      res.status(500).json({ message: 'Failed to create chat message' });
     }
   });
   

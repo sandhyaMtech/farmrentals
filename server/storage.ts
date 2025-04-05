@@ -3,14 +3,20 @@ import {
   equipment, 
   bookings, 
   availability, 
+  complaints,
+  chatMessages,
   type User, 
   type Equipment, 
   type Booking, 
   type Availability, 
+  type Complaint,
+  type ChatMessage,
   type InsertUser, 
   type InsertEquipment, 
   type InsertBooking, 
-  type InsertAvailability 
+  type InsertAvailability,
+  type InsertComplaint,
+  type InsertChatMessage
 } from "@shared/schema";
 import session from "express-session";
 import createMemoryStore from "memorystore";
@@ -47,6 +53,17 @@ export interface IStorage {
   createAvailability(availability: InsertAvailability): Promise<Availability>;
   updateAvailability(id: number, available: boolean): Promise<Availability | undefined>;
   checkAvailability(equipmentId: number, startDate: Date, endDate: Date): Promise<boolean>;
+  
+  // Complaint methods
+  getComplaint(id: number): Promise<Complaint | undefined>;
+  getComplaintsByUser(userId: number): Promise<Complaint[]>;
+  getComplaintsByStatus(status: string): Promise<Complaint[]>;
+  createComplaint(complaint: InsertComplaint): Promise<Complaint>;
+  updateComplaintStatus(id: number, status: string): Promise<Complaint | undefined>;
+  
+  // Chat methods
+  getChatMessages(userId: number, limit?: number): Promise<ChatMessage[]>;
+  createChatMessage(message: InsertChatMessage): Promise<ChatMessage>;
 }
 
 export class MemStorage implements IStorage {
@@ -54,10 +71,14 @@ export class MemStorage implements IStorage {
   private equipment: Map<number, Equipment>;
   private bookings: Map<number, Booking>;
   private availability: Map<number, Availability>;
+  private complaints: Map<number, Complaint>;
+  private chatMessages: Map<number, ChatMessage>;
   private userCurrentId: number;
   private equipmentCurrentId: number;
   private bookingCurrentId: number;
   private availabilityCurrentId: number;
+  private complaintCurrentId: number;
+  private chatMessageCurrentId: number;
   public sessionStore: session.Store;
 
   constructor() {
@@ -65,10 +86,14 @@ export class MemStorage implements IStorage {
     this.equipment = new Map();
     this.bookings = new Map();
     this.availability = new Map();
+    this.complaints = new Map();
+    this.chatMessages = new Map();
     this.userCurrentId = 1;
     this.equipmentCurrentId = 1;
     this.bookingCurrentId = 1;
     this.availabilityCurrentId = 1;
+    this.complaintCurrentId = 1;
+    this.chatMessageCurrentId = 1;
     this.sessionStore = new MemoryStore({
       checkPeriod: 86400000 // 24 hours
     });
@@ -419,6 +444,88 @@ export class MemStorage implements IStorage {
     }
     return true;
     */
+  }
+  
+  // Complaint methods
+  async getComplaint(id: number): Promise<Complaint | undefined> {
+    return this.complaints.get(id);
+  }
+  
+  async getComplaintsByUser(userId: number): Promise<Complaint[]> {
+    return Array.from(this.complaints.values()).filter(
+      (complaint) => complaint.userId === userId,
+    );
+  }
+  
+  async getComplaintsByStatus(status: string): Promise<Complaint[]> {
+    return Array.from(this.complaints.values()).filter(
+      (complaint) => complaint.status === status,
+    );
+  }
+  
+  async createComplaint(insertComplaint: InsertComplaint): Promise<Complaint> {
+    const id = this.complaintCurrentId++;
+    // Generate a reference number with format CMP-XXXXX
+    const reference = `CMP-${Math.floor(10000 + Math.random() * 90000)}`;
+    
+    const complaint: Complaint = { 
+      ...insertComplaint, 
+      id,
+      reference,
+      status: "submitted",
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    
+    this.complaints.set(id, complaint);
+    return complaint;
+  }
+  
+  async updateComplaintStatus(id: number, status: string): Promise<Complaint | undefined> {
+    const existingComplaint = this.complaints.get(id);
+    if (!existingComplaint) return undefined;
+    
+    const updatedComplaint: Complaint = { 
+      ...existingComplaint, 
+      status, 
+      updatedAt: new Date() 
+    };
+    
+    this.complaints.set(id, updatedComplaint);
+    return updatedComplaint;
+  }
+  
+  // Chat methods
+  async getChatMessages(userId: number, limit?: number): Promise<ChatMessage[]> {
+    const userMessages = Array.from(this.chatMessages.values()).filter(
+      (message) => message.userId === userId,
+    );
+    
+    // Sort by timestamp, newest first
+    userMessages.sort((a, b) => {
+      const dateA = new Date(a.timestamp);
+      const dateB = new Date(b.timestamp);
+      return dateB.getTime() - dateA.getTime();
+    });
+    
+    // Apply limit if specified
+    if (limit && limit > 0) {
+      return userMessages.slice(0, limit);
+    }
+    
+    return userMessages;
+  }
+  
+  async createChatMessage(insertMessage: InsertChatMessage): Promise<ChatMessage> {
+    const id = this.chatMessageCurrentId++;
+    const message: ChatMessage = { 
+      ...insertMessage, 
+      id,
+      timestamp: new Date()
+    };
+    
+    this.chatMessages.set(id, message);
+    return message;
   }
 }
 
