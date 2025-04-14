@@ -94,6 +94,11 @@ export function BookingModalMobile({
   // Calculate number of days and total amount
   const calculateDays = () => {
     if (dateRange.from && dateRange.to) {
+      // Check if it's a same-day booking
+      if (dateRange.from.toDateString() === dateRange.to.toDateString()) {
+        return 1; // Return 1 day for same-day bookings
+      }
+      
       const diffTime = Math.abs(dateRange.to.getTime() - dateRange.from.getTime());
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; // Include both start and end days
       return diffDays;
@@ -239,7 +244,15 @@ export function BookingModalMobile({
                           initialFocus
                           mode="range"
                           selected={dateRange}
-                          onSelect={setDateRange as any}
+                          onSelect={(range) => {
+                            // Fix for double-click error
+                            if (range && range.from && !range.to) {
+                              // When only one date is selected, auto-set it as both from and to
+                              setDateRange({ from: range.from, to: range.from });
+                            } else {
+                              setDateRange(range as any);
+                            }
+                          }}
                           numberOfMonths={1}
                           disabled={{ before: new Date() }}
                         />

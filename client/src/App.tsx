@@ -22,21 +22,25 @@ import AIChatbot from "@/components/ai-chatbot";
 import ComplaintForm from "@/components/complaint-form";
 import { MessageSquare, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import tractorImg from "./assets/tractor.jpg";
+import logoImg from "./assets/logo.png"; // ✅ Imported logo
+
+// ✅ Define supported language type
+type Language = "en" | "ta";
 
 function Router() {
-  const [language, setLanguage] = useState<string>("en");
+  const [language, setLanguage] = useState<Language>("en");
   const { user, logoutMutation } = useAuth();
   const isMobile = useIsMobile();
   const [chatbotOpen, setChatbotOpen] = useState(false);
   const [complaintFormOpen, setComplaintFormOpen] = useState(false);
 
   const handleToggleLanguage = () => {
-    const newLanguage = language === "en" ? "ta" : "en";
-    setLanguage(newLanguage);
-    i18n.changeLanguage(newLanguage);
+    const newLang: Language = language === "en" ? "ta" : "en";
+    setLanguage(newLang);
+    i18n.changeLanguage(newLang);
   };
-  
-  // Effect to sync i18n language with our state
+
   useEffect(() => {
     i18n.changeLanguage(language);
   }, [language]);
@@ -45,67 +49,57 @@ function Router() {
     logoutMutation.mutate();
   };
 
-  // Component for the homepage that redirects based on user role
   const HomePage = () => {
     if (isMobile) {
-      if (user?.role === "farmer") {
-        return <MobileBrowsePage language={language} />;
-      } else {
-        return <MobileEquipmentPage language={language} />;
-      }
+      return user?.role === "farmer"
+        ? <MobileBrowsePage language={language} />
+        : <MobileEquipmentPage language={language} />;
     } else {
-      if (user?.role === "farmer") {
-        return <FarmerDashboard currentUser={user} language={language} />;
-      } else {
-        return <OwnerDashboard currentUser={user} language={language} />;
-      }
+      return user?.role === "farmer"
+        ? <FarmerDashboard currentUser={user} language={language} />
+        : <OwnerDashboard currentUser={user} language={language} />;
     }
   };
 
-  // We don't need to render header and footer when using mobile layouts
+  const translations: Record<Language, { chat: string; report: string }> = {
+    en: { chat: 'Chat with AI', report: 'Report Issue' },
+    ta: { chat: 'AI உடன் அரட்டை', report: 'சிக்கலைப் புகாரளிக்க' }
+  };
+  const t = translations[language];
+
+  const backgroundStyle = {
+    backgroundImage: `url(${tractorImg})`,
+    backgroundSize: "cover",
+    backgroundRepeat: "no-repeat",
+    backgroundPosition: "center",
+    borderRadius: "12px",
+    padding: "1rem"
+  };
+
+  // 📱 MOBILE ROUTING
   if (isMobile) {
-    const translations = {
-      en: {
-        chat: 'Chat with AI',
-        report: 'Report Issue'
-      },
-      ta: {
-        chat: 'AI உடன் அரட்டை',
-        report: 'சிக்கலைப் புகாரளிக்க'
-      }
-    };
-    
-    const t = translations[language === 'en' ? 'en' : 'ta'];
-    
     return (
-      <div className="min-h-screen">
-        <main>
+      <div className="min-h-screen relative p-4 bg-white">
+        {/* Logo at top center */}
+        <div className="flex items-center mt-4 ml-6 space-x-3">
+          <img src={logoImg} alt="VillageWheels Logo" className="h-12 w-12 object-contain" />
+        </div>
+
+        <main className="relative z-10">
           <Switch>
-            <Route 
-              path="/auth" 
-              component={() => <MobileAuthPage language={language} onToggleLanguage={handleToggleLanguage} />} 
-            />
+            <Route path="/auth" component={() => (
+              <MobileAuthPage language={language} onToggleLanguage={handleToggleLanguage} />
+            )} />
             <ProtectedRoute path="/" component={HomePage} />
-            <ProtectedRoute 
-              path="/browse" 
-              component={() => <MobileBrowsePage language={language} />} 
-            />
-            <ProtectedRoute 
-              path="/bookings" 
-              component={() => <MobileBookingsPage language={language} />} 
-            />
-            <ProtectedRoute 
-              path="/equipment" 
-              component={() => <MobileEquipmentPage language={language} />} 
-            />
-            <ProtectedRoute 
-              path="/profile" 
-              component={() => <ProfilePage language={language} onToggleLanguage={handleToggleLanguage} />} 
-            />
+            <ProtectedRoute path="/browse" component={() => <MobileBrowsePage language={language} />} />
+            <ProtectedRoute path="/bookings" component={() => <MobileBookingsPage language={language} />} />
+            <ProtectedRoute path="/equipment" component={() => <MobileEquipmentPage language={language} />} />
+            <ProtectedRoute path="/profile" component={() => (
+              <ProfilePage language={language} onToggleLanguage={handleToggleLanguage} />
+            )} />
             <Route component={NotFound} />
           </Switch>
-          
-          {/* Floating Action Buttons for Quick Access to Chat and Report */}
+
           {user && (
             <div className="fixed bottom-20 right-4 flex flex-col space-y-3 z-50">
               <Button
@@ -128,100 +122,71 @@ function Router() {
               </Button>
             </div>
           )}
-          
-          {/* AI Chatbot */}
-          <AIChatbot 
-            language={language}
-            isOpen={chatbotOpen}
-            onClose={() => setChatbotOpen(false)}
-          />
-          
-          {/* Complaint Form */}
-          <ComplaintForm 
-            language={language}
-            isOpen={complaintFormOpen}
-            onClose={() => setComplaintFormOpen(false)}
-          />
+
+          <AIChatbot language={language} isOpen={chatbotOpen} onClose={() => setChatbotOpen(false)} />
+          <ComplaintForm language={language} isOpen={complaintFormOpen} onClose={() => setComplaintFormOpen(false)} />
         </main>
       </div>
     );
   }
 
-  // Desktop version
-  const desktopTranslations = {
-    en: {
-      chat: 'Chat with AI',
-      report: 'Report Issue'
-    },
-    ta: {
-      chat: 'AI உடன் அரட்டை',
-      report: 'சிக்கலைப் புகாரளிக்க'
-    }
-  };
-  
-  const dt = desktopTranslations[language === 'en' ? 'en' : 'ta'];
-  
+  // 💻 DESKTOP ROUTING
   return (
-    <div className="min-h-screen flex flex-col">
-      <Header 
-        currentUser={user} 
-        language={language} 
+    <div className="min-h-screen flex flex-col bg-white">
+      <Header
+        currentUser={user}
+        language={language}
         onToggleLanguage={handleToggleLanguage}
         onLogout={handleLogout}
       />
-      <main className="flex-grow">
-        <Switch>
-          <Route path="/auth" component={AuthPage} />
-          <ProtectedRoute path="/" component={HomePage} />
-          <ProtectedRoute 
-            path="/farmer" 
-            component={() => <FarmerDashboard currentUser={user} language={language} />} 
-          />
-          <ProtectedRoute 
-            path="/owner" 
-            component={() => <OwnerDashboard currentUser={user} language={language} />} 
-          />
-          <Route component={NotFound} />
-        </Switch>
-        
-        {/* Floating Action Buttons for Desktop */}
+
+      {/* Logo inline before main */}
+      <div className="flex justify-center mt-4">
+        <img src={logoImg} alt="VillageWheels Logo" className="h-20 object-contain" />
+      </div>
+
+      <main className="flex-grow relative z-10 p-4">
+        <div style={backgroundStyle}>
+          <Switch>
+            <Route path="/auth" component={AuthPage} />
+            <ProtectedRoute path="/" component={HomePage} />
+            <ProtectedRoute path="/farmer" component={() => (
+              <FarmerDashboard currentUser={user} language={language} />
+            )} />
+            <ProtectedRoute path="/owner" component={() => (
+              <OwnerDashboard currentUser={user} language={language} />
+            )} />
+            <Route component={NotFound} />
+          </Switch>
+        </div>
+
         {user && (
           <div className="fixed bottom-8 right-8 flex flex-col space-y-4 z-50">
             <Button
               variant="outline"
               className="h-12 px-4 rounded-full shadow-lg bg-primary text-primary-foreground hover:bg-primary/90 flex items-center space-x-2"
               onClick={() => setChatbotOpen(true)}
-              title={dt.chat}
+              title={t.chat}
             >
               <MessageSquare className="h-5 w-5 mr-2" />
-              {dt.chat}
+              {t.chat}
             </Button>
             <Button
               variant="outline"
               className="h-12 px-4 rounded-full shadow-lg bg-orange-500 text-white hover:bg-orange-600 flex items-center space-x-2"
               onClick={() => setComplaintFormOpen(true)}
-              title={dt.report}
+              title={t.report}
             >
               <AlertTriangle className="h-5 w-5 mr-2" />
-              {dt.report}
+              {t.report}
             </Button>
           </div>
         )}
-        
-        {/* AI Chatbot */}
-        <AIChatbot 
-          language={language}
-          isOpen={chatbotOpen}
-          onClose={() => setChatbotOpen(false)}
-        />
-        
-        {/* Complaint Form */}
-        <ComplaintForm 
-          language={language}
-          isOpen={complaintFormOpen}
-          onClose={() => setComplaintFormOpen(false)}
-        />
+
+        <AIChatbot language={language} isOpen={chatbotOpen} onClose={() => setChatbotOpen(false)} />
+        <ComplaintForm language={language} isOpen={complaintFormOpen} onClose={() => setComplaintFormOpen(false)} />
       </main>
+
       <Footer language={language} />
     </div>
   );

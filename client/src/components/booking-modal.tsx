@@ -55,6 +55,18 @@ export default function BookingModal({
     }
   }, [selectedDates.from, selectedDates.to]);
   
+  // Fix for double-click calendar error
+  const handleCalendarSelect = (range: any) => {
+    // Prevent the same date from being clicked twice causing errors
+    if (range && range.from && !range.to) {
+      // When only one date is selected, auto-set it as both from and to
+      setSelectedDates({ from: range.from, to: range.from });
+      setSameDay(true);
+    } else {
+      setSelectedDates(range as DateSelection);
+    }
+  };
+  
   // Get equipment availability
   const { data: availability = [] } = useQuery({
     queryKey: ['/api/availability', equipment.id],
@@ -114,7 +126,14 @@ export default function BookingModal({
       endDate.setHours(endHours, endMinutes, 0, 0);
     }
     
-    const days = differenceInDays(selectedDates.to, selectedDates.from) + 1;
+    // Calculate days - ensure we have at least 1 day for same-day bookings
+    let days = 1;
+    
+    // Calculate days only if it's not the same day
+    if (!sameDay) {
+      days = differenceInDays(selectedDates.to, selectedDates.from) + 1;
+    }
+    
     const baseAmount = equipment.rate * days;
     const serviceFee = Math.round(baseAmount * 0.1); // 10% service fee
     const insurance = Math.round(baseAmount * 0.12); // 12% insurance
@@ -143,7 +162,14 @@ export default function BookingModal({
       return { days: 0, baseAmount: 0, serviceFee: 0, insurance: 0, total: 0 };
     }
     
-    const days = differenceInDays(selectedDates.to, selectedDates.from) + 1;
+    // Ensure we have at least 1 day for same-day bookings
+    let days = 1;
+    
+    // Calculate days only if it's not the same day
+    if (!sameDay) {
+      days = differenceInDays(selectedDates.to, selectedDates.from) + 1;
+    }
+    
     const baseAmount = equipment.rate * days;
     const serviceFee = Math.round(baseAmount * 0.1); // 10% service fee
     const insurance = Math.round(baseAmount * 0.12); // 12% insurance
@@ -185,7 +211,7 @@ export default function BookingModal({
               <Calendar
                 mode="range"
                 selected={selectedDates}
-                onSelect={(range) => setSelectedDates(range as DateSelection)}
+                onSelect={handleCalendarSelect}
                 className="border rounded-md p-2"
                 disabled={[
                   { before: new Date() }
