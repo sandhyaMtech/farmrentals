@@ -1,0 +1,12 @@
+import tractorImg from './assets/tractor.png';
+
+function App() {
+  return (
+    <div>
+      <img src="client/src/assets/tractor.jpg
+      C:\Users\91790\AppData\Local\Microsoft\Windows\INetCache\IE\1LH8ZAHG\IMG-20250406-WA0016[1].jpg"alt="Village Wheels" width="300" />
+    </div>
+  );
+}
+
+
